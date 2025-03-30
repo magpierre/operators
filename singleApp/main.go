@@ -114,7 +114,7 @@ func main() {
 
 	new_df := lib.CreateDataFrameFromParquet(pr)
 
-	df2, err := new_df.Project("Total_amount", "Vendor_id", "Passenger_count", "Store_and_fwd_flag", "Payment_type", "Fare_amount", "Extra", "Mta_tax")
+	df2, err := new_df.Project("Total_amount", "Pickup_datetime", "Vendor_id", "Passenger_count", "Store_and_fwd_flag", "Payment_type", "Fare_amount", "Extra", "Mta_tax")
 	if err != nil {
 		log.Fatal(err)
 	}

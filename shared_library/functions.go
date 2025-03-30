@@ -9,6 +9,7 @@ import (
 
 	"github.com/xitongsys/parquet-go/common"
 	"github.com/xitongsys/parquet-go/reader"
+	"github.com/xitongsys/parquet-go/types"
 )
 
 // transpose transposes a slice of Data, converting rows to columns and vice versa.
@@ -161,6 +162,15 @@ func CreateDataFrameFromParquet(r *reader.ParquetReader) DataFrame {
 			log.Fatal(err)
 		}
 
+		if v.FieldType == "INT96" {
+			new_time_array := make([]any, len_rows)
+			for i, v2 := range value {
+				new_time_array[i] = types.INT96ToTime(v2.(string))
+			}
+			v.FieldType = "time.Time"
+			value = new_time_array
+		}
+		fmt.Println(v.FieldName, v.FieldType)
 		data = append(data, &value)
 
 	}
