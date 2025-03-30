@@ -118,5 +118,27 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	lib.PrintDataframe(*df2, os.Stdout)
+
+	df3, _ := df2.Where("Store_and_fwd_flag == '166'")
+	fmt.Fprintln(os.Stderr, df3.Count())
+	df4, _ := df3.Where("Payment_type == '1'")
+	fmt.Fprintln(os.Stderr, df4.Count())
+	df4.Transform("map(Vendor_id, int(#))")
+	vendors := df4.Distinct("Vendor_id")
+	frames := make([]*lib.DataFrame, len(vendors))
+	for i, v := range vendors {
+		s := fmt.Sprint("Vendor_id", " == ", v)
+		frames[i], _ = df4.Where(s)
+		frames[i].Transform("let total_passenger_cnt = reduce(Passenger_count, #acc + #); total_passenger_cnt")
+	}
+
+	for _, v := range frames[1:] {
+		frames[0], _ = frames[0].UnionAll(v)
+	}
+
+	counts := frames[0].Distinct("total_passenger_cnt")
+	for _, v := range counts {
+		fmt.Fprintln(os.Stderr, "Count:", v)
+	}
+	lib.PrintDataframe(*frames[0], os.Stdout)
 }
