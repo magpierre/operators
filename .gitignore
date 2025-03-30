@@ -23,3 +23,20 @@ go.work.sum
 
 # env file
 .env
+dump/dump
+.DS_Store
+.vscode/launch.json
+bin/dump
+bin/importer
+bin/project
+bin/transform
+bin/where
+importer/.vscode/launch.json
+importer/importer
+project/project
+singleApp/simpleApp
+*.log
+*.gob
+transform/transform
+where/.vscode/launch.json
+where/where
