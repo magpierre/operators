@@ -6,6 +6,9 @@ import (
 	"log"
 	"os"
 	"text/tabwriter"
+
+	"github.com/xitongsys/parquet-go/common"
+	"github.com/xitongsys/parquet-go/reader"
 )
 
 // transpose transposes a slice of Data, converting rows to columns and vice versa.
@@ -62,7 +65,13 @@ func ToAnyList[T any](input []T) []any {
 }
 
 func PrintDataframe(b DataFrame, f *os.File) {
-	l := b.GetNumberOfRows()
+	l := 0
+	if b.GetNumberOfRows() > 1000 {
+		l = 1000
+	} else {
+		l = b.GetNumberOfRows()
+	}
+
 	if l == 0 {
 		log.Fatal("no data")
 	}
@@ -125,6 +134,36 @@ func CreateDataFrameFromCSV(r *csv.Reader) DataFrame {
 		data = append(data, &lst)
 	}
 
+	d := NewDataFrameWithArgs(Fields, data)
+	return *d
+}
+
+func CreateDataFrameFromParquet(r *reader.ParquetReader) DataFrame {
+
+	rootPath := r.SchemaHandler.SchemaElements[0].Name
+
+	var Fields []Field
+
+	for i, v := range r.SchemaHandler.SchemaElements[1:] {
+		Fields = append(Fields, Field{
+			FieldName:     v.Name,
+			FieldPosition: i,
+			FieldType:     v.GetType().String(),
+		})
+	}
+
+	data := make([]*Data, 0)
+
+	len_rows := r.GetNumRows()
+	for _, v := range Fields {
+		value, _, _, err := r.ReadColumnByPath(common.ReformPathStr(rootPath+"."+v.FieldName), len_rows)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		data = append(data, &value)
+
+	}
 	d := NewDataFrameWithArgs(Fields, data)
 	return *d
 }
